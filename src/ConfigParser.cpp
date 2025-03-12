@@ -3,11 +3,11 @@
 #include <sstream>
 #include <iostream>
 
-ConfigParser::ConfigParser(const std::string& filename) {
+ConfigParser::ConfigParser(const std::string &filename) {
     loadConfig(filename);
 }
 
-void ConfigParser::loadConfig(const std::string& filename) {
+void ConfigParser::loadConfig(const std::string &filename) {
     std::ifstream file(filename);
     if (!file) {
         std::cerr << "Ошибка: не удалось открыть файл конфигурации: " << filename << std::endl;
@@ -26,7 +26,7 @@ void ConfigParser::loadConfig(const std::string& filename) {
     }
 }
 
-int ConfigParser::getIntValue(const std::string& key, int defaultValue) const {
+int ConfigParser::getIntValue(const std::string &key, int defaultValue) const {
     auto it = configValues.find(key);
     return (it != configValues.end()) ? it->second : defaultValue;
 }

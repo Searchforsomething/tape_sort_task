@@ -7,19 +7,21 @@
 
 class TapeSorter {
 private:
-    FileTape& inputTape;
-    FileTape& outputTape;
-    ConfigParser& config;
-    FileTape tmp_sorted_tape;
+    FileTape &inputTape;
+    FileTape &outputTape;
+    ConfigParser &config;
     FileTape tmp_tape1;
     FileTape tmp_tape2;
     size_t tapeSize;
+    bool debug;
 
     void splitRuns(FileTape &fromTape);
+
     bool mergeRuns();
 
 public:
-    TapeSorter(FileTape &input, FileTape &output, const ConfigParser &config, size_t tapeSize);
+    TapeSorter(FileTape &input, FileTape &output, const ConfigParser &config, size_t tapeSize, bool debug);
+
     void sort();
 };
 

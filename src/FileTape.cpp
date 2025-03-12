@@ -2,8 +2,9 @@
 #include <filesystem>
 
 
-FileTape::FileTape(const std::string &fileName, const ConfigParser &config, size_t size)
+FileTape::FileTape(const std::string &fileName, const ConfigParser &config, size_t size, bool debug)
         : fileName(fileName),
+          debug(debug),
           position(0),
           tapeSize(size),
           dataSize(0),
@@ -19,7 +20,7 @@ FileTape::FileTape(const std::string &fileName, const ConfigParser &config, size
 
         int32_t zero = 0;
         for (size_t i = 0; i < tapeSize; ++i) {
-            newFile.write(reinterpret_cast<char*>(&zero), sizeof(int32_t));
+            newFile.write(reinterpret_cast<char *>(&zero), sizeof(int32_t));
         }
 
         if (newFile.fail()) { // Проверяем ошибки записи
@@ -51,10 +52,11 @@ int32_t FileTape::read() {
     file.seekg(position * sizeof(int32_t), std::ios::beg);
 
     int32_t value;
-    file.read(reinterpret_cast<char*>(&value), sizeof(int32_t));
+    file.read(reinterpret_cast<char *>(&value), sizeof(int32_t));
 
     if (!file) {
-        throw std::runtime_error("Ошибка чтения с ленты на позиции " + std::to_string(position));
+        throw std::runtime_error(
+                "Ошибка чтения с ленты на позиции " + std::to_string(position) + " в ленте " + fileName);
     }
 
     return value;
@@ -62,9 +64,16 @@ int32_t FileTape::read() {
 
 void FileTape::write(int32_t value) {
     applyDelay(writeDelay);
+    if (!file) {
+        file.close();
+        file.open(fileName, std::ios::in | std::ios::out | std::ios::binary);
+        if (!file) {
+            throw std::runtime_error("Ошибка повторного открытия файла: " + fileName);
+        }
+    }
 
     file.seekp(position * sizeof(int32_t), std::ios::beg);
-    file.write(reinterpret_cast<const char*>(&value), sizeof(int32_t));
+    file.write(reinterpret_cast<const char *>(&value), sizeof(int32_t));
 
     if (!file) {
         throw std::runtime_error("Ошибка записи на ленту на позиции " + std::to_string(position));
@@ -73,6 +82,7 @@ void FileTape::write(int32_t value) {
     if (position >= dataSize) {
         dataSize = position + 1;
     }
+    if (debug) std::cout << "write to " << fileName << " value " << value << " at position " << position << std::endl;
 }
 
 void FileTape::moveForward() {

@@ -10,25 +10,33 @@
 
 class FileTape : public ITape {
 private:
-    std::fstream file;  // Файл, эмулирующий ленту
+    std::fstream file;
     std::string fileName;
-    int readDelay, writeDelay, moveDelay;  // Задержки (мс)
+    int readDelay, writeDelay, moveDelay;
     size_t tapeSize;
     size_t dataSize;
     size_t position;
+    bool debug;
 
-    static void applyDelay(int delay);  // Функция задержки
+    static void applyDelay(int delay);
 
 public:
-    explicit FileTape(const std::string &filename, const ConfigParser &config, size_t size);
+    explicit FileTape(const std::string &filename, const ConfigParser &config, size_t size, bool debug);
+
     ~FileTape() override;
 
     int32_t read() override;
+
     void write(int32_t value) override;
+
     void moveForward() override;
+
     void moveBackward() override;
+
     size_t getPosition() override;
+
     size_t getDataSize() override;
+
     void restart() override;
 
 };

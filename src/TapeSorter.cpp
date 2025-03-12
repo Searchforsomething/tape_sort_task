@@ -3,18 +3,20 @@
 #include <iostream>
 #include <filesystem>
 
-TapeSorter::TapeSorter(FileTape &input, FileTape &output, const ConfigParser &config, size_t tapeSize)
+TapeSorter::TapeSorter(FileTape &input, FileTape &output, const ConfigParser &config, size_t tapeSize, bool debug)
         : inputTape(input), outputTape(output), config(const_cast<ConfigParser &>(config)),
-          tmp_sorted_tape(FileTape("tmp/sorted", config, tapeSize)),
-          tmp_tape1("tmp/tape1", config, tapeSize),
-          tmp_tape2("tmp/tape2", config, tapeSize),
+          tmp_tape1("tmp/tape1", config, tapeSize, debug),
+          tmp_tape2("tmp/tape2", config, tapeSize, debug),
+          debug(debug),
           tapeSize(tapeSize) {}
 
 
 void TapeSorter::splitRuns(FileTape &fromTape) {
-
+    if (debug) std::cout << "split run\n";
     bool writeToFirst = true;
     int32_t prev, curr;
+
+    while (fromTape.getPosition() > 0) fromTape.moveBackward();
 
     try {
         prev = fromTape.read();
@@ -49,11 +51,14 @@ void TapeSorter::splitRuns(FileTape &fromTape) {
 }
 
 bool TapeSorter::mergeRuns() {
-    outputTape.restart();
+    if (debug)
+        std::cout << "merge run\ntmp/tape1 datasize = " << tmp_tape1.getDataSize() << "; tmp/tape2 datasize = "
+                  << tmp_tape2.getDataSize() << "\n";
 
     if (tmp_tape1.getDataSize() == 0 || tmp_tape2.getDataSize() == 0) {
         return false;
     }
+    outputTape.restart();
 
     while (tmp_tape1.getPosition() > 0) {
         tmp_tape1.moveBackward();
@@ -65,15 +70,24 @@ bool TapeSorter::mergeRuns() {
     int32_t val2 = tmp_tape2.read();
 
     while (outputTape.getDataSize() < tapeSize) {
-
-        if (val1 < val2 && tmp_tape1.getPosition() < tmp_tape1.getDataSize()) {
+        if (debug) std::cout << "val1 = " << val1 << "; val2 = " << val2 << "\n";
+        if ((val1 < val2 || tmp_tape2.getDataSize() <= tmp_tape2.getPosition()) &&
+            tmp_tape1.getPosition() < tmp_tape1.getDataSize()) {
             outputTape.write(val1);
             tmp_tape1.moveForward();
-            val1 = tmp_tape1.read();
+            try {
+                val1 = tmp_tape1.read();
+            } catch (...) {
+                val1 = INT32_MAX;
+            }
         } else {
             outputTape.write(val2);
             tmp_tape2.moveForward();
-            val2 = tmp_tape2.read();
+            try {
+                val2 = tmp_tape2.read();
+            } catch (...) {
+                val2 = INT32_MAX;
+            }
         }
         outputTape.moveForward();
     }
@@ -92,5 +106,4 @@ void TapeSorter::sort() {
             splitRuns(outputTape);
         } while (mergeRuns());
     }
-
 }

@@ -6,12 +6,14 @@
 
 class ConfigParser {
 public:
-    explicit ConfigParser(const std::string& filename);
-    int getIntValue(const std::string& key, int defaultValue = 0) const;
+    explicit ConfigParser(const std::string &filename);
+
+    int getIntValue(const std::string &key, int defaultValue = 0) const;
 
 private:
     std::unordered_map<std::string, int> configValues;
-    void loadConfig(const std::string& filename);
+
+    void loadConfig(const std::string &filename);
 };
 
 #endif // CONFIG_PARSER_H

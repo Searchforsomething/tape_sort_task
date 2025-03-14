@@ -1,10 +1,9 @@
 #include "TapeSorter.h"
-#include <fstream>
 #include <iostream>
 #include <filesystem>
 
 TapeSorter::TapeSorter(FileTape &input, FileTape &output, const ConfigParser &config, size_t tapeSize, bool debug)
-        : inputTape(input), outputTape(output), config(const_cast<ConfigParser &>(config)),
+        : inputTape(input), outputTape(output), config(config),
           tmp_tape1("tmp/tape1", config, tapeSize, debug),
           tmp_tape2("tmp/tape2", config, tapeSize, debug),
           debug(debug),
@@ -101,9 +100,7 @@ bool TapeSorter::mergeRuns() {
 
 void TapeSorter::sort() {
     splitRuns(inputTape);
-    if (mergeRuns()) {
-        do {
-            splitRuns(outputTape);
-        } while (mergeRuns());
+    while (mergeRuns()) {
+        splitRuns(outputTape);
     }
 }

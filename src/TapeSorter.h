@@ -9,7 +9,7 @@ class TapeSorter {
 private:
     FileTape &inputTape;
     FileTape &outputTape;
-    ConfigParser &config;
+    ConfigParser config;
     FileTape tmp_tape1;
     FileTape tmp_tape2;
     size_t tapeSize;
